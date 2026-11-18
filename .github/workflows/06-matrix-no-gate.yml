@@ -1,0 +1,43 @@
+# マトリクス（集約ジョブなし）
+# 確認したいこと:
+#   - 実行されたときのチェック名（例: "06 test (ubuntu-latest, a)"）
+#   - if でスキップされたとき、チェック名がどう表示されるか（マトリクスが展開されるか）
+#   - "06 test (ubuntu-latest, a)" などを必須にすると、md だけの PR で Pending のまま止まるか
+name: 06 matrix no-gate
+
+on:
+  pull_request:
+
+jobs:
+  changes:
+    name: 06 changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: diff
+        run: |
+          if git diff --quiet HEAD^1 HEAD -- . ':(exclude)*.md' ':(exclude)docs/**'; then
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    name: 06 test
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        variant: [a, b]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash test/test.sh

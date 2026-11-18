@@ -1,0 +1,17 @@
+# パターン①: paths-ignore でワークフローごとスキップ
+# 確認したいこと: md だけの PR で、必須チェック「01 test」が Pending のまま止まるか
+name: 01 paths-ignore
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+jobs:
+  test:
+    name: 01 test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash test/test.sh

@@ -1,0 +1,39 @@
+# パターン②-a 軽量版: fetch-depth: 2 でマージコミットと 1つ目の親を比較
+# 確認したいこと:
+#   - fetch-depth: 2 で HEAD^1 が取れるか
+#   - 結果が 02（三点 diff）と一致するか（ベースが先に進んだ PR でも）
+name: 03 git-diff depth2
+
+on:
+  pull_request:
+
+jobs:
+  changes:
+    name: 03 changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: diff
+        run: |
+          echo "--- checkout されたコミット ---"
+          git log --oneline --graph -3
+          echo "--- 変更ファイル（HEAD^1 と HEAD）---"
+          git diff --name-only HEAD^1 HEAD
+          if git diff --quiet HEAD^1 HEAD -- . ':(exclude)*.md' ':(exclude)docs/**'; then
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    name: 03 test
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash test/test.sh
