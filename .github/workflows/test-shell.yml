@@ -3,7 +3,9 @@
 name: test (shell)
 
 on:
-  push:
+  pull_request:
+    branches: [main]
+  push:  # main へのマージ
     branches: [main]
 
 jobs:
@@ -17,7 +19,8 @@ jobs:
           fetch-depth: 0
       - id: diff
         env:
-          BEFORE: ${{ github.event.before }}
+          # PR: ベースブランチの先端と比較 / マージ（push）: マージ前の main の先端と比較
+          BEFORE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           AFTER: ${{ github.sha }}
         run: |
           echo "--- 変更ファイル ---"
