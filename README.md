@@ -60,3 +60,5 @@ gh run list --commit "$sha" --json workflowName,conclusion
 ```
 
 md だけのコミットでは、`test (paths-ignore)` の結果が一覧に出てきません。
+
+test用に修正。
