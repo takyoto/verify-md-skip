@@ -1,0 +1,45 @@
+# パターン3: 各 OS のランナーを起動してから、その中で shell を実行して md だけの変更かを判定する
+# md だけのコミットでも、マトリクスの全ランナー（4台）が起動し、テストのステップだけがスキップされる
+name: test (shell in runner)
+
+on:
+  pull_request:
+    branches: [main]
+  push:  # main へのマージ
+    branches: [main]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.13', '3.14']
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash  # Windows でも同じ shell script を使う
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          # PR: ベースブランチの先端と比較 / マージ（push）: マージ前の main の先端と比較
+          BEFORE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          echo "--- 変更ファイル ---"
+          git diff --name-only "$BEFORE" "$AFTER" || true
+          if git diff --quiet "$BEFORE" "$AFTER" -- . ':(exclude)*.md'; then
+            echo "md だけの変更 → テストをスキップ"
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "md 以外の変更あり（または判定できない）→ テストを実行"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.diff.outputs.code == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - if: steps.diff.outputs.code == 'true'
+        run: python --version  # ダミーのテスト

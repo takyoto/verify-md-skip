@@ -1,11 +1,12 @@
 # verify-md-skip
 
-GitHub Actions で「md だけの変更」のときにテストを省く2つの方法を比べるための検証用リポジトリです。
+GitHub Actions で「md だけの変更」のときにテストを省く3つの方法を比べるための検証用リポジトリです。
 
 | ワークフロー | 方法 | md だけのコミットのとき |
 |---|---|---|
 | `test (paths-ignore)` | `paths-ignore` でワークフローごとスキップ | 起動しない（結果が残らない） |
 | `test (shell)` | shell で判定し、テストのジョブを `if:` でスキップ | 起動し、結果は success（test は skipped） |
+| `test (shell in runner)` | 各 OS のランナーの中で shell で判定し、テストのステップを `if:` でスキップ | 起動し、結果は success（4台のランナーが起動する） |
 
 テストはどちらも `ubuntu-latest` / `windows-latest` × Python 3.13 / 3.14 の4パターンのマトリクスで、中身はダミー（`python --version` を出すだけ）です。
 
