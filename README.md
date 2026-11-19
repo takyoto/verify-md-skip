@@ -8,7 +8,7 @@ GitHub Actions で「md だけの変更」のときにテストを省く3つの�
 | `test (shell)` | shell で判定し、テストのジョブを `if:` でスキップ | 起動し、結果は success（test は skipped） |
 | `test (shell in runner)` | 各 OS のランナーの中で shell で判定し、テストのステップを `if:` でスキップ | 起動し、結果は success（4台のランナーが起動する） |
 
-テストはどちらも `ubuntu-latest` / `windows-latest` × Python 3.13 / 3.14 の4パターンのマトリクスで、中身はダミー（`python --version` を出すだけ）です。
+テストはいずれも `ubuntu-latest` / `windows-latest` × Python 3.13 / 3.14 の4パターンのマトリクスで、中身は `app.py` の出力が `Hello, World!` であることを `test_app.py` で確認するだけです。
 
 ## 検証手順
 
@@ -29,24 +29,27 @@ GitHub で main 向けの PR を作成し、結果を確認してからマージ
 
 - `test (paths-ignore)` … 起動しない
 - `test (shell)` … success（`changes` は success、`test` は skipped）
+- `test (shell in runner)` … success（4台が起動し、テストのステップだけスキップ）
 
 ### 2. md 以外も変更する
 
+テストが通るように、出力を変えないコードの変更（コメントの追加）にします。
+
 ```bash
 git switch main && git pull
-git switch -c add-code
-echo "print('hello')" > app.py
-git add app.py
-git commit -m "feat: add app.py"
-git push -u origin add-code
+git switch -c code-change
+echo "# code change" >> app.py
+git commit -am "chore: add a comment to app.py"
+git push -u origin code-change
 ```
 
 同様に PR を作成し、マージします。
 
 期待する結果：
 
-- `test (paths-ignore)` … success
-- `test (shell)` … success（`test` も実行される）
+- `test (paths-ignore)` … success（テスト4台）
+- `test (shell)` … success（`changes` のあとにテスト4台）
+- `test (shell in runner)` … success（テスト4台）
 
 ## 結果の確認
 

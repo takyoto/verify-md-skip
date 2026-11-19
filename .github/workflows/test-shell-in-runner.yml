@@ -42,4 +42,4 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - if: steps.diff.outputs.code == 'true'
-        run: python --version  # ダミーのテスト
+        run: python test_app.py
