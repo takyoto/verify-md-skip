@@ -1,0 +1,38 @@
+# パターン2: 最初に shell で「md 以外の変更があるか」を判定し、テストのジョブを if でスキップする
+# md だけのコミットでも、このワークフローは起動し、結果は success になる
+name: test (shell)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          echo "--- 変更ファイル ---"
+          git diff --name-only "$BEFORE" "$AFTER" || true
+          if git diff --quiet "$BEFORE" "$AFTER" -- . ':(exclude)*.md'; then
+            echo "md だけの変更 → テストをスキップ"
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "md 以外の変更あり（または判定できない）→ テストを実行"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "テストを実行しました（ダミー）"

@@ -1,0 +1,15 @@
+# パターン1: paths-ignore でワークフローごとスキップする
+# md だけのコミットでは、このワークフローは起動しない（＝結果が残らない）
+name: test (paths-ignore)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "テストを実行しました（ダミー）"
