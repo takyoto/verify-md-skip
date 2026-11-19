@@ -36,6 +36,13 @@ jobs:
   test:
     needs: changes
     if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.13', '3.14']
+    runs-on: ${{ matrix.os }}
     steps:
-      - run: echo "テストを実行しました（ダミー）"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python --version  # ダミーのテスト

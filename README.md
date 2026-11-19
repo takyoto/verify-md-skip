@@ -7,7 +7,7 @@ GitHub Actions で「md だけの変更」のときにテストを省く2つの�
 | `test (paths-ignore)` | `paths-ignore` でワークフローごとスキップ | 起動しない（結果が残らない） |
 | `test (shell)` | shell で判定し、テストのジョブを `if:` でスキップ | 起動し、結果は success（test は skipped） |
 
-テストはどちらもダミー（`echo` するだけ）です。
+テストはどちらも `ubuntu-latest` / `windows-latest` × Python 3.13 / 3.14 の4パターンのマトリクスで、中身はダミー（`python --version` を出すだけ）です。
 
 ## 検証手順
 
