@@ -1,1 +1,2 @@
 docs/ 配下の md 以外のファイル。docs/** 除外の確認に使う。
+- docs non-md
